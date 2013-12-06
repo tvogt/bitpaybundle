@@ -1,7 +1,4 @@
-parameters:
-#    calitarus_bit_pay.example.class: Calitarus\BitPayBundle\Example
-
 services:
-#    calitarus_bit_pay.example:
-#        class: %calitarus_bit_pay.example.class%
-#        arguments: [@service_id, "plain_value", %parameter%]
+    bitpay:
+        class: Calitarus\BitPayBundle\Service\BitPay
+        arguments: [@logger]

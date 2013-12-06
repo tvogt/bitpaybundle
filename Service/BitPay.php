@@ -13,44 +13,44 @@ class BitPay {
 	// Please look carefully through these options and adjust according to your installation.  
 	// Alternatively, most of these options can be dynamically set
 
-	private $bpOptions = array(
+	private $options = array(
 	// REQUIRED Api key you created at bitpay.com
 	// example: $apiKey = 'L21K5IIUG3IN2J3';
-		$apiKey = '',
+		'apiKey' => '',
 
 	// whether to verify POS data by hashing above api key.  If set to false, you should
 	// have some way of verifying that callback data comes from bitpay.com
 	// note: this option can only be changed here.  It cannot be set dynamically. 
-		$verifyPos = true,
+		'verifyPos' => true,
 
 	// email where invoice update notifications should be sent
-		$notificationEmail = '',
+		'notificationEmail' => '',
 
 	// url where bit-pay server should send update notifications.  See API doc for more details.
 	# example: $bpNotificationUrl = 'http://www.example.com/callback.php';
-		$notificationURL = '',
+		'notificationURL' => '',
 
 	// url where the customer should be directed to after paying for the order
 	# example: $redirectURL = 'http://www.example.com/confirmation.php';
-		$redirectURL = '',
+		'redirectURL' => '',
 
 	// This is the currency used for the price setting.  A list of other pricing
 	// currencies supported is found at bitpay.com
-		$currency = 'BTC',
+		'currency' => 'BTC',
 
 	// Indicates whether anything is to be shipped with
 	// the order (if false, the buyer will be informed that nothing is
 	// to be shipped)
-		$physical = 'false',
+		'physical' => 'false',
 
 	// If set to false, then notificaitions are only
 	// sent when an invoice is confirmed (according the the
 	// transactionSpeed setting). If set to true, then a notification
 	// will be sent on every status change
-		$fullNotifications = 'true',
+		'fullNotifications' => 'true',
 
 	// transaction speed: low/medium/high.   See API docs for more details.
-		$transactionSpeed = 'low'
+		'transactionSpeed' => 'low'
 	);
 
 	public function __construct(Logger $logger) {
@@ -75,11 +75,11 @@ class BitPay {
 	//		'buyerAddress1', 'buyerAddress2', 'buyerCity', 'buyerState', 'buyerZip', 'buyerEmail', 'buyerPhone')
 	// If a given option is not provided here, the value of that option will default to what is found above
 	public function bpCreateInvoice($orderId, $price, $posData, $options = array()) {	
-		$options = array_merge($this->bpOptions, $options); // $options override any default options
+		$options = array_merge($this->options, $options); // $options override any default options
 		
 		$pos = array('posData' => $posData);
-		if ($bpOptions['verifyPos'])
-			$pos['hash'] = bpHash(serialize($posData), $options['apiKey']);
+		if ($this->options['verifyPos'])
+			$pos['hash'] = $this->bpHash(serialize($posData), $options['apiKey']);
 		$options['posData'] = json_encode($pos);
 		
 		$options['orderID'] = $orderId;
@@ -99,27 +99,22 @@ class BitPay {
 	}
 
 	// Call from your notification handler to convert $_POST data to an object containing invoice data
-	public function bpVerifyNotification($apiKey = false) {
+	public function bpVerifyNotification($request, $apiKey = false) {
 		if (!$apiKey) $apiKey = $this->options['apiKey'];
-		
-		$post = file_get_contents("php://input");
-		if (!$post)
-			return 'No post data';
-			
-		$json = json_decode($post, true);
-		
-		if (is_string($json))
-			return $json; // error
 
-		if (!array_key_exists('posData', $json)) 
-			return 'no posData';
-			
-		$posData = json_decode($json['posData'], true);
-		if ($this->verifyPos and $posData['hash'] != bpHash(serialize($posData['posData']), $apiKey))
+		$posData = $request->request->get('posData');
+		if ($this->options['verifyPos'] and $posData['hash'] != $this->bpHash(serialize($posData['posData']), $apiKey)) {
 			return 'authentication failed (bad hash)';
-		$json['posData'] = $posData['posData'];
-			
-		return $json;
+		}
+
+		$result = array();
+		$options = array('id', 'url', 'status', 'price', 'currency', 'btcPrice', 'invoiceTime', 'expirationTime', 'currentTime');
+		foreach ($options as $o) {
+			$result[$o] = $request->request->get($o);
+		}
+		$result['posData'] = $posData['posData'];
+
+		return $result;
 	}
 
 	// $options can include ('apiKey')
