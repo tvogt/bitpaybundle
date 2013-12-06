@@ -1,0 +1,6 @@
+amount: Amount
+currency: Currency
+c:
+ btc:	Bitcoin
+ eur: Euro
+submit: Submit Order
