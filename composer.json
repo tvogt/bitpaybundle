@@ -1,0 +1,29 @@
+{
+    "name":"Calitarus/BitPayBundle",
+    "description":"Symfony2 Bundle for BitPay interfacing",
+    "keywords":["payment", "bitcoin", "bitpay"],
+    "homepage":"https://github.com/tvogt/bitpaybundle",
+    "type":"library",
+    "license":"GPL3",
+    "authors":[
+        {
+            "name":"Tom Vogt",
+            "email":"tom@lemuria.org",
+            "homepage":"http://lemuria.org"
+        },
+        {
+            "name": "Calitarus GmbH",
+            "homepage": "http://calitarus.de"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "require-dev": {
+    },
+
+    "autoload":{
+        "psr-0": { "Calitarus\\BitPayBundle": "" }
+    },
+    "target-dir": "Calitarus/BitPayBundle"
+}
